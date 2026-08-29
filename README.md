@@ -1,2 +1,3 @@
-# neopets-tampermonkey
-TamperMonkey Scripts for Neopets. All of these follow ToS as far as I know, but that "as far as I know" is doing a non-zero amount of lifting.
+# Neopets Tampermonkey
+
+Tampermonkey Scripts for Neopets. All of these follow ToS as far as I know, but y'know, use at your own discretion etc etc.
