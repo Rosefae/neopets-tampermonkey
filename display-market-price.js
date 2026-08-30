@@ -62,7 +62,7 @@
     let perPageTypeOptions = {
         "Almost Abandoned Attic": {
             displayRarity: true,
-            highlightThreshold: 50000,
+            highlightThreshold: 80000,
             additionalItemElStyling: {
                 height: "auto",
                 padding: 0,
@@ -99,7 +99,7 @@
         },
         "Igloo Garage Sale": {
             displayRarity: true,
-            highlightThreshold: 50000
+            highlightThreshold: 80000
         },
         "SDB": {
             highlightThreshold: 0
@@ -284,7 +284,7 @@
             processItems();
         });
     }
-    
+
     async function processItems() {
         itemsNotInCache = [];
         itemsOnPage = await getItemsOnPage();
@@ -394,7 +394,7 @@
 
         item.el.appendChild(newEl);
 
-        if (highlightPrice > highlightThreshold) {
+        if (highlightPrice > highlightThreshold && highlightThreshold > 0) {
             Object.assign(item.el.style, highlightStyle);
             item.el.dataset.meetsPriceThreshold = true;
             // TODO: change how styling is handled to apply css to these selectors instead?
