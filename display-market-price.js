@@ -62,6 +62,7 @@
     let perPageTypeOptions = {
         "Almost Abandoned Attic": {
             displayRarity: true,
+            highlightThreshold: 50000,
             additionalItemElStyling: {
                 height: "auto",
                 padding: 0,
@@ -69,18 +70,21 @@
             }
         },
         "Money Tree": {
+            highlightThreshold: 1000,
             displayRarity: true,
             additionalStyling: {
                 textAlign: "center"
             }
         },
         "Second-Hand Shoppe": {
+            highlightThreshold: 1000,
             displayRarity: true,
             additionalStyling: {
                 fontWeight: "normal"
             }
         },
         "Rubbish Dump": {
+            highlightThreshold: 1000,
             displayRarity: true
         },
         "Standard Shop": {
@@ -94,23 +98,26 @@
             displayRarity: true
         },
         "Igloo Garage Sale": {
-            displayRarity: true
+            displayRarity: true,
+            highlightThreshold: 50000
         },
         "SDB": {
-            highlightPriceThreshold: 0
+            highlightThreshold: 0
         },
         "Inventory": {
+            highlightThreshold: 2000,
             additionalStyling: {
                 textAlign: "center"
             }
         },
         "Quick Stock": {
+            highlightThreshold: 2000,
             additionalStyling: {
                 marginLeft: "2rem"
             },
         },
         "Shop Stock": {
-            highlightPriceThreshold: 0,
+            highlightThreshold: 1000000,
             additionalStyling: {
                 textAlign: "start"
             }
@@ -145,6 +152,7 @@
     let getPriceFromEl = null;
     let skipCondition = null;
     let getItemsSleepTime = 0;
+    let navigationListener = false;
 
     switch (currUrl) {
         case "https://www.neopets.com/halloween/garage.phtml":
@@ -214,12 +222,14 @@
                 allItemsQuerySelector = ".bsp-item > button";
                 getNameFromEl = (el) => el.dataset.name;
                 getPriceFromEl = (el) => el.dataset.price;
+                navigationListener = true;
                 break;
             }
             if (currUrl.startsWith("https://www.neopets.com/market.phtml?type=your")) {
                 pageType = "Shop Stock";
                 allItemsQuerySelector = ".market-your-item__info";
                 getNameFromEl = (el) => el.querySelector(".market-your-item__name").innerText;
+                navigationListener = true;
                 break;
             }
             if (currUrl.startsWith("https://www.neopets.com/safetydeposit.phtml")) {
@@ -227,6 +237,7 @@
                 allItemsQuerySelector = ".sdb-item-info";
                 getNameFromEl = (el) => el.querySelector(".sdb-item-name").innerText;
                 getItemsSleepTime = 1000;
+                navigationListener = true;
                 break;
             }
             console.log("Can't recognize page type :[");
@@ -267,8 +278,13 @@
     let itemsOnPage = [];
     processItems();
 
-    window.navigation.addEventListener("navigate", processItems);
-
+    if (navigationListener) {
+        window.navigation.addEventListener("navigate", async () => {
+            await sleep(100);
+            processItems();
+        });
+    }
+    
     async function processItems() {
         itemsNotInCache = [];
         itemsOnPage = await getItemsOnPage();
