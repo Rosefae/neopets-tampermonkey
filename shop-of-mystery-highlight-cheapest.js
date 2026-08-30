@@ -12,13 +12,13 @@
 (function () {
     'use strict';
 
-    let mysteryItems = document.querySelectorAll("td:has(a[href^='process_shopofmystery.phtml'])");
+    let mysteryItems = document.querySelectorAll("td:has(> a[href^='process_shopofmystery.phtml'])");
     let currentCheapest = null;
 
     mysteryItems.forEach((item) => {
         const costLine = item.innerHTML.match(/(?<=Cost: )[0-9,]+(?= NP)/)[0],
             cost = parseInt(costLine.replace(",", ""));
-        
+
         if (!currentCheapest || currentCheapest.cost > cost) {
             currentCheapest = {
                 el: item,
