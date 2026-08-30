@@ -69,10 +69,10 @@
         "How its Dung"
     ];
 
-    var itemsAvailable = document.querySelectorAll("td:has(a[href^='/takedonation_new.phtml?'])");
+    let itemsAvailable = document.querySelectorAll("td:has(a[href^='/takedonation_new.phtml?'])");
 
     itemsAvailable.forEach((itemAvail) => {
-        var name = itemAvail.querySelector("b").innerText;
+        let name = itemAvail.querySelector("b").innerText;
 
         if (avatarItems.includes(name)) {
             highlight(itemAvail.closest("td"), "royalblue");
