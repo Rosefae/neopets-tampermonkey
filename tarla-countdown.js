@@ -133,12 +133,12 @@
 
         let duration = now.until(dropTime, { smallestUnit: "minutes" });
 
-        if (duration.sign < 0) {
-            duration = duration.add({ days: 1 });
-        }
-
         if (getDropPrizeInstead) {
             duration = duration.add({ minutes: 15 });
+        }
+
+        if (duration.sign < 0) {
+            duration = duration.add({ days: 1 });
         }
 
         console.log("Time until prize: ", duration);
