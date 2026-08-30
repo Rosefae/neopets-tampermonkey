@@ -43,12 +43,17 @@
         highlightThreshold: 10000, // set to 0 to never highlight
         highlightPriority: "diff", // accepted values: "diff" or "market". Falls back to "market" for views without a diff
         indicateNegativePriceDiff: true,
+        highlightWishlist: true, // requires my wishlist script to be installed also
         highlightStyle: {
-            boxShadow: `0 0 5px lime`,
+            boxShadow: "0 0 5px lime",
             borderRadius: "5px"
         },
         negativeStyle: {
-            textDecoration: `line-through 3px red`
+            textDecoration: "line-through 3px red"
+        },
+        wishlistHighlightStyle: {
+            boxShadow: "0 0 5px orchid",
+            borderRadius: "5px"
         },
         additionalStyling: null,
         additionalItemElStyling: null
@@ -250,8 +255,10 @@
         highlightThreshold,
         highlightPriority,
         indicateNegativePriceDiff,
+        highlightWishlist,
         highlightStyle,
         negativeStyle,
+        wishlistHighlightStyle,
         additionalStyling,
         additionalItemElStyling
     } = combinedPageOptions;
@@ -375,6 +382,10 @@
 
         if (negativeIndicator) {
             Object.assign(item.el.style, negativeStyle);
+        }
+
+        if (highlightWishlist && unsafeWindow.wishlistItems && unsafeWindow.wishlistItems.includes(item.name)) {
+            Object.assign(item.el.style, wishlistHighlightStyle);
         }
     }
 
