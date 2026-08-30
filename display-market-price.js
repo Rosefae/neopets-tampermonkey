@@ -190,7 +190,7 @@
         case "https://www.neopets.com/quickstock.phtml":
             pageType = "Quick Stock";
             allItemsQuerySelector = ".np-table-row:not(:last-child) > td:first-child";
-            getNameFromEl = (el) => el.querySelector("span").innerText;
+            getNameFromEl = (el) => getInnerTextNoChildElements(el.querySelector("span"));
             getItemsSleepTime = 500;
             break;
         default:
@@ -549,6 +549,12 @@
 
     async function sleep(ms) {
         return new Promise(r => setTimeout(r, ms));
+    }
+
+    function getInnerTextNoChildElements(el) {
+        const textNodes = [...el.childNodes].filter(n => n.nodeType === Node.TEXT_NODE);
+        const textArray = textNodes.map(n => n.textContent.trim());
+        return textArray.join(' ');
     }
 
 })();

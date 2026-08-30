@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      2026-08-29
 // @description  Count down until the next Tarla time
-// @author       You
+// @author       rose@byanyothername.me
 // @match        https://www.neopets.com/freebies/tarlastoolbar.phtml
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=neopets.com
 // @grant        none
