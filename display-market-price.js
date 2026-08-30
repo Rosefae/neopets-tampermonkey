@@ -287,6 +287,8 @@
         getItemPricesFromDBv1(itemsNotInCache, () => {
             itemsOnPage.forEach(itemHandler);
             setItemPricesLocalCache();
+
+            document.dispatchEvent(new CustomEvent("marketPriceRenderingDone"));
         });
     }
 
@@ -378,14 +380,18 @@
 
         if (highlightPrice > highlightThreshold) {
             Object.assign(item.el.style, highlightStyle);
+            item.el.dataset.meetsPriceThreshold = true;
+            // TODO: change how styling is handled to apply css to these selectors instead?
         }
 
         if (negativeIndicator) {
             Object.assign(item.el.style, negativeStyle);
+            item.el.dataset.negativeDiff = true;
         }
 
         if (highlightWishlist && unsafeWindow.wishlistItems && unsafeWindow.wishlistItems.includes(item.name)) {
             Object.assign(item.el.style, wishlistHighlightStyle);
+            item.el.dataset.onWishlist = true;
         }
     }
 

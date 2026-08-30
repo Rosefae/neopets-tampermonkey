@@ -69,8 +69,6 @@
         modal.showModal();
     });
 
-    console.log("woof", unsafeWindow.wishlistItems);
-
     function getWishlistLocalCache() {
         const items = GM_getValue(localStorageKey, []);
         unsafeWindow.wishlistItems = items;
