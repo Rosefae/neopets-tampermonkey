@@ -53,9 +53,9 @@ QoL improvement to make it easier to withdraw everything from your shop till by 
 
 ### Tarla Countdown
 
-On days when Tarla's in her Non-Toolbar Treasures, adds a big red countdown showing how long until the next prize.
+On days when Tarla's in her Non-Toolbar Treasures, adds a big countdown showing how long until the next prize. Uses Temporal, so only works on browsers that support that. Optionally also plays a notification alarm sound.
 
-NOTE: You will have to manually enter/update the time. You can find it on one of the many NeoBoards / Discord channels where people post these. I don't know where those people get their data, so I haven't been able to automate this part.
+NOTE: You will have to manually enter/update the time into the textbox every day. You can get the time on Neoboards / Discord threads (I'm not sure how these people get the times so no automation there.) For convenience, you can enter a URL to your preferred data source, and the script will create a link to it.
 
 ### Wishlist
 
