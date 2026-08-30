@@ -31,6 +31,10 @@ Supported pages:
 
 On pages that take a long time to load (SDB) you may need to refresh the page if it doesn't populate properly.
 
+#### Todo:
+- Create some means of updating the settings without modifying the script directly (will probably keep it simple and just do text areas for JSON dumps)
+- Option to not highlight items above the threshold if it's also been tagged with "inflation"
+
 ### Lunar Temple Puzzle
 
 Highlights the correct answer to the Lunar Temple Puzzle
@@ -46,6 +50,9 @@ QoL improvement. On changing the quantity, automatically checks the box to inclu
 ### Shop of Mystery Highlight Cheapest
 
 Highlights the cheapest available item at Tarla's Shop of Mystery.
+
+#### Todo:
+- Move that item to the top of the page so you don't have to scroll
 
 ### Shop Till Withdraw All
 
