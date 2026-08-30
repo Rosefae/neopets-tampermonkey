@@ -469,7 +469,16 @@
                 }
 
                 else if (res.status === 401) {
-                    return console.error("Your ItemDB cookie has probably expired! Visit https://itemdb.com.br/ to refresh it.");
+                    console.error("Your ItemDB cookie has probably expired! Visit https://itemdb.com.br/ to refresh it.");
+                    const popup = document.createElement("dialog");
+                    popup.innerHTML = `<h2>Market Price Checker Error</h2>
+                    <p>Your ItemDB cookie seems to have expired!</p>
+                    <p>Visit <a href="https://itemdb.com.br/">the ItemDB website</a> for a new one, then come back and refresh this page.</p>
+                    <a href="https://itemdb.com.br/" style="display: block; margin: 0 auto; padding: 1rem; font-weight:bold; color: white; background: black; border-radius: 5px;">ItemDB Website</a>`;
+                    popup.setAttribute("closedby", "any");
+                    document.body.appendChild(popup);
+                    popup.showModal();
+                    return;
                 }
 
                 else return console.error('Failed to fetch price data', res);
