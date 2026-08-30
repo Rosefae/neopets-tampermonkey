@@ -135,10 +135,6 @@
     const currUrl = window.location.href;
     let pageType = "";
 
-    let paginationControls = null;
-    let sleepBeforeAddingListeners = 0;
-    let reAddPagination = false;
-    let sleepBeforeReprocessing = 500;
     let allItemsQuerySelector = "";
     let getNameFromEl = null;
     let getPriceFromEl = null;
@@ -209,13 +205,6 @@
             }
             if (currUrl.startsWith("https://www.neopets.com/browseshop.phtml?")) {
                 pageType = "User Shop";
-                paginationControls = [
-                    {
-                        selector: ".bsp-pagination-btn",
-                        listener: "click"
-                    }
-                ];
-                reAddPagination = true;
                 getItemsSleepTime = 1000;
                 allItemsQuerySelector = ".bsp-item > button";
                 getNameFromEl = (el) => el.dataset.name;
@@ -230,26 +219,6 @@
             }
             if (currUrl.startsWith("https://www.neopets.com/safetydeposit.phtml")) {
                 pageType = "SDB";
-                paginationControls = [
-                    {
-                        selector: ".sdb-pagination-btn",
-                        listener: "click"
-                    },
-                    {
-                        selector: ".sdb-pagination-jump .np-stepper-input",
-                        listener: "change"
-                    },
-                    {
-                        selector: ".sdb-filters .sdb-select",
-                        listener: "change"
-                    },
-                    {
-                        selector: ".sdb-filters .sdb-search-input",
-                        listener: "submit"
-                    }
-                ];
-                sleepBeforeAddingListeners = 500;
-                reAddPagination = true;
                 allItemsQuerySelector = ".sdb-item-info";
                 getNameFromEl = (el) => el.querySelector(".sdb-item-name").innerText;
                 getItemsSleepTime = 1000;
@@ -291,31 +260,7 @@
     let itemsOnPage = [];
     processItems();
 
-    if (paginationControls) {
-        addPaginationListeners();
-    }
-
-    async function addPaginationListeners() {
-        if (sleepBeforeAddingListeners) {
-            console.log(`Sleeping for ${sleepBeforeAddingListeners} before adding pagination event listeners`);
-            await sleep(sleepBeforeAddingListeners);
-        }
-
-        paginationControls.forEach((controlType) => {
-            const controls = document.querySelectorAll(controlType.selector);
-            controls.forEach((c) => {
-                c.addEventListener(controlType.listener, async () => {
-                    await sleep(sleepBeforeReprocessing);
-                    console.log("Re-processing");
-                    processItems();
-
-                    if (reAddPagination) {
-                        addPaginationListeners();
-                    }
-                });
-            });
-        });
-    }
+    window.navigation.addEventListener("navigate", processItems);
 
     async function processItems() {
         itemsNotInCache = [];
