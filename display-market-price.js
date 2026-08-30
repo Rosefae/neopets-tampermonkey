@@ -30,25 +30,86 @@
     // Possible TODOs:
     // - Refactor to group all page-specfic settings to a dictionary at the front
     // - Some kind of wishlist functionality?
+    // - Minor SDB bugs
 
     // options
     const dataStaleThresholdDays = 7;
-    // These options can also be overridden on a per-pagetype basis within the itemHandler function
-    let addedTextColor = "purple",
-        highlightGoodColor = "lime",
-        highlightBadColor = "red",
-        highlightMarketPriceThreshold = 10000, // set to 0 to never highlight
-        highlightPriceDiffThreshold = 10000, // set to 0 to never highlight
-        highlightPriority = "diff", // accepted values: "diff" or "market"
-        indicateNegativePriceDiff = true;
 
-    const highlightStyle = {
-        boxShadow: `0 0 5px ${highlightGoodColor}`,
-        borderRadius: "5px"
+    let defaultPageOptions = {
+        addedTextColor: "purple", // colors call be any string that CSS will understand as a color
+        displayMarketPrice: true,
+        displayPriceDiff: true,
+        displayRarity: false,
+        highlightThreshold: 10000, // set to 0 to never highlight
+        highlightPriority: "diff", // accepted values: "diff" or "market". Falls back to "market" for views without a diff
+        indicateNegativePriceDiff: true,
+        highlightStyle: {
+            boxShadow: `0 0 5px lime`,
+            borderRadius: "5px"
+        },
+        negativeStyle: {
+            textDecoration: `line-through 3px red`
+        },
+        additionalStyling: null,
+        additionalItemElStyling: null
     }
 
-    const negativeStyle = {
-        textDecoration: `line-through 3px ${highlightBadColor}`
+    let perPageTypeOptions = {
+        "Almost Abandoned Attic": {
+            displayRarity: true,
+            additionalItemElStyling: {
+                height: "auto",
+                padding: 0,
+                margin: "2px"
+            }
+        },
+        "Money Tree": {
+            displayRarity: true,
+            additionalStyling: {
+                textAlign: "center"
+            }
+        },
+        "Second-Hand Shoppe": {
+            displayRarity: true,
+            additionalStyling: {
+                fontWeight: "normal"
+            }
+        },
+        "Rubbish Dump": {
+            displayRarity: true
+        },
+        "Standard Shop": {
+            displayRarity: true,
+            additionalStyling: {
+                fontFamily: '"MuseoSansRounded500", "Arial", sans-serif',
+                textAlign: "center"
+            }
+        },
+        "User Shop": {
+            displayRarity: true
+        },
+        "Igloo Garage Sale": {
+            displayRarity: true
+        },
+        "SDB": {
+            highlightPriceThreshold: 0
+        },
+        "Inventory": {
+            additionalStyling: {
+                textAlign: "center"
+            }
+        },
+        "Quick Stock": {
+            additionalStyling: {
+                marginLeft: "2rem"
+            },
+        },
+        "Shop Stock": {
+            highlightPriceThreshold: 0,
+            additionalStyling: {
+                textAlign: "start"
+            }
+        }
     }
 
     // init
@@ -73,35 +134,77 @@
     // get page type
     const currUrl = window.location.href;
     let pageType = "";
+
     let paginationControls = null;
     let sleepBeforeAddingListeners = 0;
     let reAddPagination = false;
+    let sleepBeforeReprocessing = 500;
+    let allItemsQuerySelector = "";
+    let getNameFromEl = null;
+    let getPriceFromEl = null;
+    let skipCondition = null;
+    let getItemsSleepTime = 0;
 
     switch (currUrl) {
         case "https://www.neopets.com/halloween/garage.phtml":
             pageType = "Almost Abandoned Attic";
+            allItemsQuerySelector = "ul#items li";
+            getNameFromEl = (el) => el.getAttribute("oname");
+            getPriceFromEl = (el) => parseInt(el.getAttribute("oprice").replaceAll(",", ""));
             break;
         case "https://www.neopets.com/winter/igloo.phtml?stock=1":
             pageType = "Igloo Garage Sale";
+            allItemsQuerySelector = ".igs-item";
+            getNameFromEl = (el) => el.querySelector("p b").innerText;
+            getPriceFromEl = (el) => {
+                const priceEl = el.querySelector("p:has(b) + p"),
+                    priceString = priceEl.innerText.match(/[0-9]+/)[0];
+                return parseInt(priceString);
+            }
             break;
         case "https://www.neopets.com/donations.phtml":
             pageType = "Money Tree";
+            allItemsQuerySelector = ".moneytree-grid > .donated > a";
+            getNameFromEl = (el) => el.dataset.name;
+            skipCondition = (el) => {
+                const name = getNameFromEl(el);
+                return name.match(/[0-9]+ NP/);
+            };
             break;
         case "https://www.neopets.com/thriftshoppe/index.phtml":
             pageType = "Second-Hand Shoppe";
+            allItemsQuerySelector = ".content > div > table td > a";
+            getNameFromEl = (el) => el.querySelector("div:has(img) + div").innerText;
             break;
         case "https://www.neopets.com/medieval/rubbishdump.phtml":
             pageType = "Rubbish Dump";
+            allItemsQuerySelector = "td:has(> a[href^='/takedonation_new.phtml?'])";
+            getNameFromEl = (el) => el.querySelector("b").innerText;
             break;
         case "https://www.neopets.com/inventory.phtml":
             pageType = "Inventory";
+            allItemsQuerySelector = ".item-grid .grid-item";
+            getNameFromEl = (el) => el.querySelector(".item-name").innerText;
+            getItemsSleepTime = 500;
             break;
         case "https://www.neopets.com/quickstock.phtml":
             pageType = "Quick Stock";
+            allItemsQuerySelector = ".np-table-row:not(:last-child) > td:first-child";
+            getNameFromEl = (el) => el.querySelector("span").innerText;
+            getItemsSleepTime = 500;
             break;
         default:
             if (currUrl.startsWith("https://www.neopets.com/objects.phtml?")) {
                 pageType = "Standard Shop";
+                allItemsQuerySelector = ".shop-item";
+                getNameFromEl = (el) => {
+                    const img = el.querySelector(".item-img");
+                    return img.dataset.name;
+                };
+                getPriceFromEl = (el) => {
+                    const img = el.querySelector(".item-img");
+                    return parseInt(img.dataset.price.replaceAll(",", ""));
+                };
                 break;
             }
             if (currUrl.startsWith("https://www.neopets.com/browseshop.phtml?")) {
@@ -113,10 +216,16 @@
                     }
                 ];
                 reAddPagination = true;
+                getItemsSleepTime = 1000;
+                allItemsQuerySelector = ".bsp-item > button";
+                getNameFromEl = (el) => el.dataset.name;
+                getPriceFromEl = (el) => el.dataset.price;
                 break;
             }
             if (currUrl.startsWith("https://www.neopets.com/market.phtml?type=your")) {
                 pageType = "Shop Stock";
+                allItemsQuerySelector = ".market-your-item__info";
+                getNameFromEl = (el) => el.querySelector(".market-your-item__name").innerText;
                 break;
             }
             if (currUrl.startsWith("https://www.neopets.com/safetydeposit.phtml")) {
@@ -131,10 +240,19 @@
                         listener: "change"
                     },
                     {
-                        selector: ".sdb-filters .sdb-select, .sdb-filters .sdb-search-input",
+                        selector: ".sdb-filters .sdb-select",
                         listener: "change"
+                    },
+                    {
+                        selector: ".sdb-filters .sdb-search-input",
+                        listener: "submit"
                     }
-                ]
+                ];
+                sleepBeforeAddingListeners = 500;
+                reAddPagination = true;
+                allItemsQuerySelector = ".sdb-item-info";
+                getNameFromEl = (el) => el.querySelector(".sdb-item-name").innerText;
+                getItemsSleepTime = 1000;
                 break;
             }
             console.log("Can't recognize page type :[");
@@ -154,6 +272,21 @@
     // - Second-Hand Shoppe
     console.log("Page type: " + pageType);
 
+    const combinedPageOptions = { ...defaultPageOptions, ...perPageTypeOptions[pageType] }
+    const {
+        addedTextColor,
+        displayMarketPrice,
+        displayPriceDiff,
+        displayRarity,
+        highlightThreshold,
+        highlightPriority,
+        indicateNegativePriceDiff,
+        highlightStyle,
+        negativeStyle,
+        additionalStyling,
+        additionalItemElStyling
+    } = combinedPageOptions;
+
     let itemsNotInCache = [];
     let itemsOnPage = [];
     processItems();
@@ -164,14 +297,15 @@
 
     async function addPaginationListeners() {
         if (sleepBeforeAddingListeners) {
+            console.log(`Sleeping for ${sleepBeforeAddingListeners} before adding pagination event listeners`);
             await sleep(sleepBeforeAddingListeners);
         }
 
-        paginationControls.forEach((thing) => {
-            const controls = document.querySelectorAll(thing.selector);
+        paginationControls.forEach((controlType) => {
+            const controls = document.querySelectorAll(controlType.selector);
             controls.forEach((c) => {
-                c.addEventListener(thing.listener, async () => {
-                    await sleep(100);
+                c.addEventListener(controlType.listener, async () => {
+                    await sleep(sleepBeforeReprocessing);
                     console.log("Re-processing");
                     processItems();
 
@@ -205,91 +339,9 @@
     }
 
     async function getItemsOnPage() {
-        let allItemsQuerySelector = "";
-        let getNameFromEl = null;
-        let getPriceFromEl = null;
-        let otherActionsOnEl = null;
-        let skipCondition = null;
-        let sleepTime = 0;
-
-        switch (pageType) {
-            case "Almost Abandoned Attic":
-                allItemsQuerySelector = "ul#items li";
-                getNameFromEl = (el) => el.getAttribute("oname");
-                getPriceFromEl = (el) => parseInt(el.getAttribute("oprice").replaceAll(",", ""));
-                otherActionsOnEl = (el) => {
-                    el.style.height = "auto";
-                    el.style.padding = 0;
-                    el.style.margin = "2px";
-                }
-                break;
-            case "Igloo Garage Sale":
-                allItemsQuerySelector = ".igs-item";
-                getNameFromEl = (el) => el.querySelector("p b").innerText;
-                getPriceFromEl = (el) => {
-                    const priceEl = el.querySelector("p:has(b) + p"),
-                        priceString = priceEl.innerText.match(/[0-9]+/)[0];
-                    return parseInt(priceString);
-                }
-                break;
-            case "Standard Shop":
-                allItemsQuerySelector = ".shop-item";
-                getNameFromEl = (el) => {
-                    const img = el.querySelector(".item-img");
-                    return img.dataset.name;
-                };
-                getPriceFromEl = (el) => {
-                    const img = el.querySelector(".item-img");
-                    return parseInt(img.dataset.price.replaceAll(",", ""));
-                };
-                break;
-            case "User Shop":
-                allItemsQuerySelector = ".bsp-item > button";
-                getNameFromEl = (el) => el.dataset.name;
-                getPriceFromEl = (el) => el.dataset.price;
-                break;
-            case "Money Tree":
-                allItemsQuerySelector = ".moneytree-grid > .donated > a";
-                getNameFromEl = (el) => el.dataset.name;
-                skipCondition = (el) => {
-                    const name = getNameFromEl(el);
-                    return name.match(/[0-9]+ NP/);
-                }
-                break;
-            case "Second-Hand Shoppe":
-                allItemsQuerySelector = ".content > div > table td > a";
-                getNameFromEl = (el) => el.querySelector("div:has(img) + div").innerText;
-                break;
-            case "Rubbish Dump":
-                allItemsQuerySelector = "td:has(> a[href^='/takedonation_new.phtml?'])";
-                getNameFromEl = (el) => el.querySelector("b").innerText;
-                break;
-            case "SDB":
-                allItemsQuerySelector = ".sdb-item-info";
-                getNameFromEl = (el) => el.querySelector(".sdb-item-name").innerText;
-                sleepTime = 200;
-                break;
-            case "Inventory":
-                allItemsQuerySelector = ".item-grid .grid-item";
-                getNameFromEl = (el) => el.querySelector(".item-name").innerText;
-                sleepTime = 200;
-                break;
-            case "Quick Stock":
-                allItemsQuerySelector = ".np-table-row:not(:last-child) > td:first-child";
-                getNameFromEl = (el) => el.querySelector("span").innerText;
-                sleepTime = 200;
-                break;
-            case "Shop Stock":
-                allItemsQuerySelector = ".market-your-item__info";
-                getNameFromEl = (el) => el.querySelector(".market-your-item__name").innerText;
-                break;
-            default:
-                console.log("No item fetch script for page type!");
-                return;
-        }
-
-        if (sleepTime > 0) {
-            await sleep(sleepTime);
+        if (getItemsSleepTime > 0) {
+            console.log(`Sleeping for ${getItemsSleepTime}ms before getting items`);
+            await sleep(getItemsSleepTime);
         }
 
         let allItemEls = document.querySelectorAll(allItemsQuerySelector);
@@ -300,8 +352,8 @@
         allItemEls.forEach((itemEl) => {
             if (skipCondition && skipCondition(itemEl)) return;
 
-            if (otherActionsOnEl) {
-                otherActionsOnEl(itemEl);
+            if (additionalItemElStyling) {
+                Object.assign(itemEl.style, additionalItemElStyling);
             }
 
             let name = getNameFromEl(itemEl);
@@ -322,73 +374,12 @@
     }
 
     function itemHandler(item) {
-        let additionalStyling = {};
-        let displayMarketPrice = true;
-        let displayPriceDiff = item.price && item.price > 0;
-        let displayRarity = false;
-
-        switch (pageType) {
-            case "Almost Abandoned Attic":
-                displayRarity = true;
-                break;
-            case "Money Tree":
-                displayRarity = true;
-                additionalStyling = {
-                    textAlign: "center"
-                };
-                break;
-            case "Second-Hand Shoppe":
-                displayRarity = true;
-                additionalStyling = {
-                    fontWeight: "normal"
-                };
-                break;
-            case "Rubbish Dump":
-                displayRarity = true;
-                break;
-            case "Standard Shop":
-                displayRarity = true;
-                additionalStyling = {
-                    fontFamily: '"MuseoSansRounded500", "Arial", sans-serif',
-                    textAlign: "center"
-                };
-                break;
-            case "User Shop":
-                displayRarity = true;
-                break;
-            case "Igloo Garage Sale":
-                displayRarity = true;
-                break;
-            case "SDB":
-                highlightMarketPriceThreshold = 0;
-                break;
-            case "Inventory":
-                additionalStyling = {
-                    textAlign: "center"
-                }
-                break;
-            case "Quick Stock":
-                additionalStyling = {
-                    marginLeft: "2rem"
-                }
-                break;
-            case "Shop Stock":
-                highlightMarketPriceThreshold = 0;
-                additionalStyling = {
-                    textAlign: "start"
-                }
-                break;
-            default:
-                console.log("No item handler for page type!");
-                return;
-        }
-
         const itemData = cachedItems[item.name];
         if (!itemData.marketPrice) return;
 
         const price = itemData.marketPrice;
         let content = "";
-        let highlight = false;
+        let highlightPrice = price;
         let negativeIndicator = false;
 
         if (displayRarity) {
@@ -408,9 +399,7 @@
             }
         }
 
-        highlight = highlightMarketPriceThreshold > 0 && price > highlightMarketPriceThreshold;
-
-        if (displayPriceDiff) {
+        if (displayPriceDiff && item.price && item.price > 0) {
             let priceDiff = itemData.marketPrice - item.price;
             if (content.length > 0) {
                 content += "<br>";
@@ -418,7 +407,7 @@
             content += `<span>Price Difference: <strong>${priceDiff}</strong></span>`;
 
             if (highlightPriority == "diff") {
-                highlight = highlightPriceDiffThreshold > 0 && priceDiff > highlightPriceDiffThreshold;
+                highlightPrice = priceDiff;
             }
 
             negativeIndicator = indicateNegativePriceDiff && priceDiff < 0;
@@ -435,7 +424,7 @@
 
         item.el.appendChild(newEl);
 
-        if (highlight) {
+        if (highlightPrice > highlightThreshold) {
             Object.assign(item.el.style, highlightStyle);
         }
 
@@ -559,7 +548,7 @@
     // Helpers
 
     async function sleep(ms) {
-        return new Promise(r => setTimeout(r, 2000));
+        return new Promise(r => setTimeout(r, ms));
     }
 
 })();
