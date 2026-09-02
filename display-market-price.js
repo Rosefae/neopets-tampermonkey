@@ -42,6 +42,7 @@
         displayRarity: false,
         highlightThreshold: 10000, // set to 0 to never highlight
         highlightPriority: "diff", // accepted values: "diff" or "market". Falls back to "market" for views without a diff
+        ignoreThresholdIfInflation: true,
         indicateNegativePriceDiff: true,
         highlightWishlist: true, // requires my wishlist script to be installed also
         highlightStyle: {
@@ -265,6 +266,7 @@
         displayRarity,
         highlightThreshold,
         highlightPriority,
+        ignoreThresholdIfInflation,
         indicateNegativePriceDiff,
         highlightWishlist,
         highlightStyle,
@@ -351,6 +353,7 @@
         let content = "";
         let highlightPrice = price;
         let negativeIndicator = false;
+        let isInflation = false;
 
         if (displayRarity) {
             content += `<span>Rarity: <strong>${itemData.rarity}</strong></span>`;
@@ -366,6 +369,10 @@
         if (itemData.marketPriceStatus) {
             for (const status of itemData.marketPriceStatus) {
                 content += `<span>(${status})</span>`;
+
+                if (status == "inflation") {
+                    isInflation = true;
+                }
             }
         }
 
@@ -394,7 +401,7 @@
 
         item.el.appendChild(newEl);
 
-        if (highlightPrice > highlightThreshold && highlightThreshold > 0) {
+        if (highlightThreshold > 0 && highlightPrice > highlightThreshold && (!isInflation || !ignoreThresholdIfInflation)) {
             Object.assign(item.el.style, highlightStyle);
             item.el.dataset.meetsPriceThreshold = true;
             // TODO: change how styling is handled to apply css to these selectors instead?
