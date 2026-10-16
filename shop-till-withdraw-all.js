@@ -15,7 +15,7 @@
     // Max Amount btn instead of Withdraw All directly because I don't want to mess with form submission
 
     const tillBalanceSpan = document.querySelector("#mkt-till-balance"),
-        tillBalance = parseInt(tillBalanceSpan.innerText.replace(",", ""));
+        tillBalance = parseInt(tillBalanceSpan.innerText.replaceAll(",", ""));
 
     const amountInput = document.querySelector(".mkt-form input[name='amount']"),
         amountInputContainer = amountInput.parentElement;
