@@ -21,7 +21,8 @@
         "Customise": "https://www.neopets.com/customise/",
         "Ye Olde Fishing Vortex": "https://www.neopets.com/water/fishing.phtml",
         "Battledome": "https://www.neopets.com/dome/",
-        "Games Room": "https://www.neopets.com/games/"
+        "Games Room": "https://www.neopets.com/games/",
+        "Customisation Spotlight": "https://www.neopets.com/spotlights/custompet/?tab=vote"
     }
 
     await sleep(3000);
