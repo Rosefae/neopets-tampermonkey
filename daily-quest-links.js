@@ -22,7 +22,9 @@
         "Ye Olde Fishing Vortex": "https://www.neopets.com/water/fishing.phtml",
         "Battledome": "https://www.neopets.com/dome/",
         "Games Room": "https://www.neopets.com/games/",
-        "Customisation Spotlight": "https://www.neopets.com/spotlights/custompet/?tab=vote"
+        "Customisation Spotlight": "https://www.neopets.com/spotlights/custompet/?tab=vote",
+        "Grumpy Old King": "https://www.neopets.com/medieval/grumpyking.phtml",
+        "Wise Old King": "https://www.neopets.com/medieval/wiseking.phtml"
     }
 
     await sleep(3000);
